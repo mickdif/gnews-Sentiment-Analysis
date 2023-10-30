@@ -4,12 +4,6 @@ Sentiment analysis a partire di notizie da Google News tramite scraping
 # Fonte
 https://github.com/ranahaani/GNews/blob/master
 
-# Librerie
-from gnews import GNews
-from textblob import TextBlob
-from nltk.sentiment import SentimentIntensityAnalyzer
-import matplotlib.pyplot as plt
-
 # Esempio di output:
 
 (testo primo articolo)
