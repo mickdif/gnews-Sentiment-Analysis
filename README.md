@@ -1,5 +1,5 @@
 # gnews-Sentiment-Analysis
-Sentiment analysis a partire di notizie da Google News tramite scraping
+Sentiment analysis a partire di notizie da Google News tramite scraping e traduzione automatica
 
 # Fonte
 https://github.com/ranahaani/GNews/blob/master
