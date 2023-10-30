@@ -8,10 +8,8 @@ https://github.com/ranahaani/GNews/blob/master
 
 (testo primo articolo)
 
-Sentiment(polarity=0.0, subjectivity=0.0)
-
-Sentiment(polarity=0.0, subjectivity=0.0)
-
+Sentiment(polarity=0.0, subjectivity=0.0)  
+Sentiment(polarity=0.0, subjectivity=0.0)  
 Sentiment(polarity=0.0, subjectivity=0.25)
 
 Sentiment(polarity=0.20833333333333334, subjectivity=0.25)
