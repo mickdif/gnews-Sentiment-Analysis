@@ -1,47 +1,54 @@
-from gnews import GNews
-from textblob import TextBlob
-from nltk.sentiment import SentimentIntensityAnalyzer
-import matplotlib.pyplot as plt
+from gnews import GNews # scrape
+from deep_translator import GoogleTranslator # translate
+from textblob import TextBlob # evaluate
+import matplotlib.pyplot as plt # plot
+import numpy as np
+from textblob.en import subjectivity
 
-# google_news = GNews()
-google_news = GNews(language='it', country='IT', period='100d', max_results=100)
-# pakistan_news = google_news.get_news('Telecom italia')
-# print(pakistan_news[0])
-q = 'Telecom italia'
-json_resp = google_news.get_news(q)
+# -----------------------------------------
+# SETUP
+query = 'Telecom Italia'
+language = 'it'
 
-# article = google_news.get_full_article(json_resp[2]['url'])  
 
-# for idx in range(len(json_resp)):
-#     article = google_news.get_full_article(json_resp[idx]['url'])
-#     text = article.text
-#     print(text)
+google_news = GNews(language=language, country='IT', period='10d', max_results=30)
+json_resp = google_news.get_news(query)
 
-# text = article.text
-# print(text)
-
-polarity_tot=0
+polarity_tot = 0
 polarity_verbose = ''
-polarity_pos=0
-polarity_neg=0
-polarity_neutral=0
-subjectivity_tot=0
+polarity_pos = 0
+polarity_neg = 0
+polarity_neutral = 0
+subjectivity_tot = 0
 subjectivity_verbose = ''
-i = 0
+well_read = 0 # articoli aperti senza errori
+polarity_array = np.array('')
+subjectivity_array = np.array('')
 
-print("ciao")
+
+gt=GoogleTranslator(source='it', target='en')
 
 for idx in range(len(json_resp)):
-    article = google_news.get_full_article(json_resp[idx]['url']) # newspaper3k instance, you can access newspaper3k all attributes in article
+    article = google_news.get_full_article(json_resp[idx]['url']) # newspaper3k instance
     
     try:
+        # open and translate
         text = article.text
-        if idx == 0: # ESEMPIO
-            print(text)
+        text = gt.translate(text=text)
+        # print(article.text) # debug
+        # print(text)
+
+        # Sentiment Analysis
+        # The sentiment property returns a namedtuple of the form Sentiment(polarity, subjectivity). 
+        # The polarity score is a float within the range [-1.0, 1.0]. 
+        # The subjectivity is a float within the range [0.0, 1.0] where 0.0 is very objective and 1.0 is very subjective. (from api reference)
         analysis = TextBlob(text)
-        polarity_tot = analysis.sentiment.polarity + polarity_tot
-        subjectivity_tot = analysis.sentiment.subjectivity + subjectivity_tot
-        i += 1 
+        polarity_tot += analysis.sentiment.polarity
+        polarity_array = np.append(polarity_array, analysis.sentiment.polarity)
+        subjectivity_tot += analysis.sentiment.subjectivity
+        subjectivity_array = np.append(subjectivity_array, analysis.sentiment.subjectivity)
+        
+
         if analysis.sentiment.polarity < 0:
             polarity_neg += 1
         elif analysis.sentiment.polarity == 0:
@@ -49,41 +56,32 @@ for idx in range(len(json_resp)):
         else:
             polarity_pos += 1
         
-        print(analysis.sentiment)
-    except:
-        print("continua")
-        continue
+        print(analysis.sentiment) # debug
+        
+        well_read += 1 
+    except: 
+        continue # ignore exceptions
+
+
+if well_read == 0:
+    print('Error: can not open any news, or no news avaible.')
+    print("EXIT")
+    exit()
     
+polarity_avg = polarity_tot / well_read
+if polarity_avg < 0:    polarity_verbose = 'Negative sentiment'
+else:   polarity_verbose = 'Positive sentiment'
+
+subjectivity_avg = subjectivity_tot / well_read
+if subjectivity_avg < 0.5:    subjectivity_verbose = 'Objective sentiment'
+else:    subjectivity_verbose = 'Subjective sentiment'
+
+print('\nTot. Polarity for', query , 'is:' , polarity_tot,
+        '\nThe avg polarity is: ', polarity_avg, '(', polarity_verbose, ')')
     
-
-
-# ricorda: polarity va [-1.0 , +1.0] mentre subjectivity [0.0 , 1.0]
-# polarity -1.0 negativa, polarity +1.0 positiva
-# subjectivity 0.0 very objective, +1.0 very subjective
-
-try:
-    polarity_avg=polarity_tot/i
-    
-    if polarity_avg < 0:
-        polarity_verbose = 'Negative sentiment'
-    else:
-        polarity_verbose = 'Positive sentiment'
-
-    subjectivity_avg=subjectivity_tot/i
-    if subjectivity_avg < 0.5:
-        subjectivity_verbose = 'Objective sentiment'
-    else:
-        subjectivity_verbose = 'Subjective sentiment'
-
-    print('\nTot. Polarity for', q , 'is:' , polarity_tot,
-          '\nThe avg polarity is: ', polarity_avg, '(', polarity_verbose, ')')
-    
-    print('\nTot. Subjectivity for', q , 'is:' , subjectivity_tot,
-          '\nThe avg polarity is: ', subjectivity_avg , '(', subjectivity_verbose, ')'
-          '\non a number of tweets: ', i)
-
-except:
-    print('Zero tweet available... Try another #tag')
+print('\nTot. Subjectivity for', query , 'is:' , subjectivity_tot,
+        '\nThe avg polarity is: ', subjectivity_avg , '(', subjectivity_verbose, ')'
+        '\non ', well_read, 'news read')
 
 
 # Creazione del grafico a barre
@@ -94,4 +92,3 @@ counts = [polarity_pos,  polarity_neg]
 bar_colors = ['tab:green',  'tab:red']
 ax.bar(sentiments, counts, color=bar_colors)
 plt.show()
-
