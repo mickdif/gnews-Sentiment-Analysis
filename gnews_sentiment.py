@@ -1,4 +1,3 @@
-from enum import CONTINUOUS
 from gnews import GNews
 from textblob import TextBlob
 from nltk.sentiment import SentimentIntensityAnalyzer
